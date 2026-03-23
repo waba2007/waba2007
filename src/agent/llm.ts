@@ -22,6 +22,7 @@ export async function callLLM(messages: LLMMessage[]): Promise<LLMResponse> {
 
     if (config.llm.fallback.apiKey && config.llm.fallback.baseUrl) {
       try {
+        logger.debug(`Trying model ${config.llm.fallback.model || "mixtral-8x7b-32768"} with ${tools.length} tools`);
         return await fetchLLM(
           config.llm.fallback.baseUrl,
           config.llm.fallback.apiKey,

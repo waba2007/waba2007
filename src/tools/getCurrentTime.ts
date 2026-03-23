@@ -1,5 +1,5 @@
 import { logger } from "../utils/logger.js";
-import { ToolInstance } from "./index.js";
+import { ToolInstance } from "./types.js";
 
 /**
  * Basic tool to get the current date and time.
@@ -18,6 +18,7 @@ export const getCurrentTime: ToolInstance = {
             description: "The timezone to use (optional).",
           },
         },
+        required: [], // Explicitly empty required array for strict APIs like Groq
       },
     },
   },

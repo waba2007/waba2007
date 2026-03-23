@@ -1,22 +1,6 @@
 import { logger } from "../utils/logger.js";
 import { getCurrentTime } from "./getCurrentTime.js";
-
-/**
- * Interface definition for a tool.
- */
-export interface ToolSchema {
-  type: "function";
-  function: {
-    name: string;
-    description: string;
-    parameters: object;
-  };
-}
-
-export interface ToolInstance {
-  schema: ToolSchema;
-  execute: (args: any) => Promise<string>;
-}
+import { ToolInstance, ToolSchema } from "./types.js";
 
 /**
  * Registry of available tools for the agent.
@@ -34,7 +18,9 @@ class ToolRegistry {
   }
 
   getAllSchemas(): ToolSchema[] {
-    return Array.from(this.tools.values()).map((t) => t.schema);
+    const schemas = Array.from(this.tools.values()).map((t) => t.schema);
+    logger.debug(`Fetching ${schemas.length} tool schemas for LLM.`);
+    return schemas;
   }
 
   async executeTool(name: string, args: any): Promise<string> {
