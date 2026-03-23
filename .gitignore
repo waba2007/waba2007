@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+dist/
+
+# Environment
+.env
+.env.example
+
+# Database
+database/*.sqlite
+database/*.sqlite-journal
+
+# Operating System
+.DS_Store
+Thumbs.db
