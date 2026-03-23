@@ -100,28 +100,42 @@ async function handleTextMessage(ctx: any, text: string) {
     // Send original text response
     for (const chunk of chunks) {
       if (!chunk) continue;
+      
+      // 🎵 Music Feature: If it's a found song, download and send it!
+      if (chunk.startsWith("MUSIQUE_FOUND:")) {
+          const parts = chunk.split("|");
+          const title = parts[0].replace("MUSIQUE_FOUND:", "").trim();
+          const musicUrl = parts[1].replace("URL:", "").trim();
+          
+          await ctx.reply(`🎵 Envoi de la musique : **${title}**...`);
+          try {
+             const { InputFile } = await import("grammy");
+             // Send it! Telegram supports sending from URL directly
+             await ctx.replyWithAudio(new InputFile({ url: musicUrl }), { title });
+          } catch (e) {
+             await ctx.reply(`❌ Impossible d'envoyer le fichier audio directly. Voici le lien : ${musicUrl}`);
+          }
+          continue;
+      }
+
       try {
         await ctx.reply(chunk, { parse_mode: "Markdown" });
       } catch (markdownError) {
-        // Fallback if Markdown parsing fails due to AI output
-        logger.warn("Markdown parsing failed, sending as plain text.");
+        // Fallback if Markdown parsing fails
         await ctx.reply(chunk);
       }
     }
 
-    // 🔊 TTS Generation (Only for the full response)
-    // Send voice if text is between 5 and 5000 chars
-    if (response.length > 5 && response.length < 5000) {
+    // 🔊 TTS Generation (Prioritize ElevenLabs, realistic voice)
+    // Up to 10,000 characters (several minutes)
+    if (response.length > 3 && response.length < 10000 && !response.includes("MUSIQUE_FOUND:")) {
        await ctx.replyWithChatAction("upload_voice");
        const voicePath = await generateSpeech(response, tempDir);
        if (voicePath) {
-          logger.info(`Sending voice response to ${userId} (from ${voicePath})`);
+          logger.info(`Sending REALISTIC voice response to ${userId}`);
           const { InputFile } = await import("grammy");
           await ctx.replyWithVoice(new InputFile(voicePath));
-          // Cleanup
           if (fs.existsSync(voicePath)) fs.unlinkSync(voicePath);
-       } else {
-          logger.warn(`TTS generation failed for text length ${response.length}`);
        }
     }
   } catch (error: any) {

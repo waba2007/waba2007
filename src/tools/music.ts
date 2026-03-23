@@ -25,8 +25,8 @@ export const searchMusic: ToolInstance = {
   execute: async ({ query }) => {
     logger.info(`Searching music for: ${query}`);
     try {
-      // 1. Search for the song
-      const searchUrl = `https://musicapi.x007.workers.dev/search?q=${encodeURIComponent(query)}&searchEngine=seevn`;
+      // 1. Search for the song (using gaama engine as suggested in docs)
+      const searchUrl = `https://musicapi.x007.workers.dev/search?q=${encodeURIComponent(query)}&searchEngine=gaama`;
       const searchRes = await fetch(searchUrl);
       const searchData = await searchRes.json() as any;
 
@@ -37,16 +37,17 @@ export const searchMusic: ToolInstance = {
       const song = searchData.response[0];
       const songId = song.id;
 
-      // 2. Fetch the actual download/stream link
+      // 2. Fetch the actual download link
       const fetchUrl = `https://musicapi.x007.workers.dev/fetch?id=${songId}`;
       const fetchRes = await fetch(fetchUrl);
       const fetchData = await fetchRes.json() as any;
 
       if (fetchData.status !== 200 || !fetchData.response) {
-        return `J'ai trouvé "${song.title}", mais je n'ai pas pu récupérer le lien de lecture.`;
+        return `J'ai trouvé "${song.title}", mais le lien de téléchargement n'est pas disponible.`;
       }
 
-      return `J'ai trouvé la musique : **${song.title}**\n\nVoici le lien pour l'écouter ou la télécharger :\n${fetchData.response}`;
+      // Return a structured response that the bot can recognize
+      return `MUSIQUE_FOUND: ${song.title} | URL: ${fetchData.response}`;
     } catch (error: any) {
       logger.error("Music tool error:", error.message);
       return "Une erreur est survenue lors de la recherche de musique.";
