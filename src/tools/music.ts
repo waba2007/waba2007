@@ -8,7 +8,7 @@ export const searchMusic: ToolInstance = {
   schema: {
     type: "function",
     function: {
-      name: "search_and_play_music",
+      name: "play_music",
       description: "Search for a song and return a stream/download link for the user.",
       parameters: {
         type: "object",

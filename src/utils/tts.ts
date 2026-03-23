@@ -1,74 +1,65 @@
-import { config } from "../config/env.js";
 import { logger } from "./logger.js";
 import fs from "fs/promises";
 import path from "path";
 
 /**
- * Generates an audio file from text using ElevenLabs API.
+ * NEW: Multi-part TTS to read EVERYTHING without limits.
+ * Uses a free public endpoint but handles long texts by splitting into chunks.
  */
 export async function generateSpeech(text: string, outputDir: string): Promise<string | null> {
-  const apiKey = config.cloud.elevenlabs.apiKey;
-  if (!apiKey) {
-    logger.warn("ElevenLabs API Key missing in config. Skipping TTS.");
-    return null;
-  }
-
-  // Voice ID for "Rachel" (classic versatile voice)
-  const voiceId = "21m00Tcm4TlvDq8ikWAM"; 
-  const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
-
-  logger.info(`Generating speech for text (length: ${text.length})...`);
-
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "xi-api-key": apiKey,
-      },
-      body: JSON.stringify({
-        text,
-        model_id: "eleven_multilingual_v2",
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-        },
-      }),
-    });
+    const rawChunks = splitText(text, 200); // 200 chars limit per chunk for the free API
+    const audioPaths: string[] = [];
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`ElevenLabs error: ${error}`);
+    logger.info(`Generating LONG speech for ${rawChunks.length} chunks...`);
+
+    for (let i = 0; i < rawChunks.length; i++) {
+        const chunk = rawChunks[i];
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunk)}&tl=fr&client=tw-ob`;
+        
+        const response = await fetch(url);
+        if (!response.ok) continue;
+
+        const buffer = await response.arrayBuffer();
+        const chunkPath = path.join(outputDir, `tmp_chunk_${Date.now()}_${i}.mp3`);
+        await fs.writeFile(chunkPath, Buffer.from(buffer));
+        audioPaths.push(chunkPath);
     }
 
-    const audioBuffer = await response.arrayBuffer();
-    const fileName = `speech_${Date.now()}.mp3`;
-    const filePath = path.join(outputDir, fileName);
+    if (audioPaths.length === 0) return null;
 
-    await fs.writeFile(filePath, Buffer.from(audioBuffer));
-    return filePath;
+    // Merge logic: For now, we'll just send the first one or simple merge if possible.
+    // To be perfectly robust without external tools like ffmpeg, we'll return the chunks list 
+    // or just the main one. But wait, we can append buffers!
+    
+    const finalBuffer = await mergeBuffers(audioPaths);
+    const finalPath = path.join(outputDir, `waba_voice_${Date.now()}.mp3`);
+    await fs.writeFile(finalPath, finalBuffer);
+
+    // Clean up chunks
+    for (const p of audioPaths) {
+        await fs.unlink(p).catch(() => {});
+    }
+
+    return finalPath;
   } catch (error: any) {
-    logger.warn(`ElevenLabs failed, using free fallback TTS: ${error.message}`);
-    return await fallbackTTS(text, outputDir);
+    logger.error("Failed to generate long speech:", error.message);
+    return null;
   }
 }
 
-/**
- * Free fallback TTS using a public endpoint (Google Translate).
- */
-async function fallbackTTS(text: string, outputDir: string): Promise<string | null> {
-  try {
-    const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text.substring(0, 200))}&tl=fr&client=tw-ob`;
-    const response = await fetch(url);
-    if (!response.ok) return null;
+function splitText(text: string, size: number): string[] {
+    const chunks: string[] = [];
+    for (let i = 0; i < text.length; i += size) {
+        chunks.push(text.substring(i, i + size));
+    }
+    return chunks;
+}
 
-    const buffer = await response.arrayBuffer();
-    const fileName = `speech_fallback_${Date.now()}.mp3`;
-    const filePath = path.join(outputDir, fileName);
-    
-    await fs.writeFile(filePath, Buffer.from(buffer));
-    return filePath;
-  } catch (e) {
-    return null;
-  }
+async function mergeBuffers(paths: string[]): Promise<Buffer> {
+    const buffers = [];
+    for (const p of paths) {
+        buffers.push(await fs.readFile(p));
+    }
+    return Buffer.concat(buffers);
 }
