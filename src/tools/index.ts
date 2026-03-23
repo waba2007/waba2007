@@ -1,5 +1,6 @@
 import { logger } from "../utils/logger.js";
 import { getCurrentTime } from "./getCurrentTime.js";
+import { searchMusic } from "./music.js";
 import { ToolInstance, ToolSchema } from "./types.js";
 
 /**
@@ -7,6 +8,11 @@ import { ToolInstance, ToolSchema } from "./types.js";
  */
 class ToolRegistry {
   private tools: Map<string, ToolInstance> = new Map();
+
+  constructor() {
+    this.register(getCurrentTime);
+    this.register(searchMusic);
+  }
 
   register(tool: ToolInstance) {
     this.tools.set(tool.schema.function.name, tool);
@@ -39,6 +45,3 @@ class ToolRegistry {
 }
 
 export const registry = new ToolRegistry();
-
-// Initialize the registry with default tools
-registry.register(getCurrentTime);

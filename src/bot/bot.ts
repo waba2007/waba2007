@@ -110,15 +110,18 @@ async function handleTextMessage(ctx: any, text: string) {
     }
 
     // 🔊 TTS Generation (Only for the full response)
-    // We only generate TTS for the main response (max 1000 chars for better performance)
-    if (response.length > 5 && response.length < 2000) {
+    // Send voice if text is between 5 and 5000 chars
+    if (response.length > 5 && response.length < 5000) {
        await ctx.replyWithChatAction("upload_voice");
        const voicePath = await generateSpeech(response, tempDir);
        if (voicePath) {
+          logger.info(`Sending voice response to ${userId} (from ${voicePath})`);
           const { InputFile } = await import("grammy");
           await ctx.replyWithVoice(new InputFile(voicePath));
           // Cleanup
           if (fs.existsSync(voicePath)) fs.unlinkSync(voicePath);
+       } else {
+          logger.warn(`TTS generation failed for text length ${response.length}`);
        }
     }
   } catch (error: any) {

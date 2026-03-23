@@ -1,3 +1,4 @@
+import { config } from "../config/env.js";
 import { logger } from "./logger.js";
 import fs from "fs/promises";
 import path from "path";
@@ -6,9 +7,9 @@ import path from "path";
  * Generates an audio file from text using ElevenLabs API.
  */
 export async function generateSpeech(text: string, outputDir: string): Promise<string | null> {
-  const apiKey = process.env.ELEVENLABS_API_KEY;
+  const apiKey = config.cloud.elevenlabs.apiKey;
   if (!apiKey) {
-    logger.warn("ElevenLabs API Key missing. Skipping TTS.");
+    logger.warn("ElevenLabs API Key missing in config. Skipping TTS.");
     return null;
   }
 
@@ -45,11 +46,29 @@ export async function generateSpeech(text: string, outputDir: string): Promise<s
     const filePath = path.join(outputDir, fileName);
 
     await fs.writeFile(filePath, Buffer.from(audioBuffer));
-    logger.info(`Speech generated and saved to: ${filePath}`);
-    
     return filePath;
   } catch (error: any) {
-    logger.error("Failed to generate speech:", error.message);
+    logger.warn(`ElevenLabs failed, using free fallback TTS: ${error.message}`);
+    return await fallbackTTS(text, outputDir);
+  }
+}
+
+/**
+ * Free fallback TTS using a public endpoint (Google Translate).
+ */
+async function fallbackTTS(text: string, outputDir: string): Promise<string | null> {
+  try {
+    const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text.substring(0, 200))}&tl=fr&client=tw-ob`;
+    const response = await fetch(url);
+    if (!response.ok) return null;
+
+    const buffer = await response.arrayBuffer();
+    const fileName = `speech_fallback_${Date.now()}.mp3`;
+    const filePath = path.join(outputDir, fileName);
+    
+    await fs.writeFile(filePath, Buffer.from(buffer));
+    return filePath;
+  } catch (e) {
     return null;
   }
 }
