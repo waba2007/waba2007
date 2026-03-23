@@ -17,8 +17,12 @@ export async function processMessage(userId: number, text: string): Promise<stri
       role: "system",
       content: `You are WABA, a personalized, secure, and local AI agent.
       Current time is ${new Date().toLocaleString()}.
-      You can use tools to help the user.
-      Keep your answers helpful, concise, and professional.`,
+      
+      STRICT RULES:
+      1. ONLY use the specific tools provided in the 'tools' list.
+      2. DO NOT invent, hallucinate, or attempt to call any functions or tools that are not explicitly defined.
+      3. If no provided tool fits the request, answer using your own knowledge as a text response.
+      4. Keep your answers helpful, concise, and professional.`,
     },
     ...history.map((m) => {
       const metadata = m.metadata ? JSON.parse(m.metadata) : {};
