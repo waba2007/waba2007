@@ -77,13 +77,46 @@ bot.on("message:voice", async (ctx) => {
   }
 });
 
+// 📸 Handle Photo Messages
+bot.on("message:photo", async (ctx) => {
+  const userId = ctx.from!.id;
+  const photo = ctx.message.photo.pop()!; // Highest resolution
+  const caption = ctx.message.caption || "Analyse cette image pour moi.";
+
+  try {
+    await ctx.replyWithChatAction("typing");
+    logger.info(`Received photo from ${userId} with caption: ${caption}`);
+    
+    // 1. Get file path from Telegram
+    const file = await ctx.getFile();
+    const fileUrl = `https://api.telegram.org/file/bot${config.telegram.token}/${file.file_path}`;
+    
+    // 2. Download and convert to base64
+    const responseFile = await fetch(fileUrl);
+    const arrayBuffer = await responseFile.arrayBuffer();
+    const base64Image = Buffer.from(arrayBuffer).toString("base64");
+    const mimeType = file.file_path?.endsWith(".png") ? "image/png" : "image/jpeg";
+
+    // 3. Process with multimodal content
+    const multimodalContent = [
+      { type: "text", text: caption },
+      { type: "image_url", image_url: { url: `data:${mimeType};base64,${base64Image}` } }
+    ];
+
+    await handleTextMessage(ctx, multimodalContent as any);
+  } catch (error: any) {
+    logger.error(`Error handling photo from ${userId}:`, error);
+    await ctx.reply("💔 Une erreur est survenue lors de l'analyse de l'image.");
+  }
+});
+
 // ✍️ Handle Text Messages
 bot.on("message:text", async (ctx) => {
   const text = ctx.message.text;
   await handleTextMessage(ctx, text);
 });
 
-async function handleTextMessage(ctx: any, text: string) {
+async function handleTextMessage(ctx: any, text: any) {
   const userId = ctx.from!.id;
 
   logger.info(`Message from user ${userId}: ${text}`);
@@ -128,7 +161,7 @@ async function handleTextMessage(ctx: any, text: string) {
 
     // 🔊 TTS Generation (Prioritize ElevenLabs, realistic voice)
     // Up to 10,000 characters (several minutes)
-    if (response.length > 3 && response.length < 10000 && !response.includes("MUSIQUE_FOUND:")) {
+    if (typeof response === "string" && response.length > 3 && response.length < 10000 && !response.includes("MUSIQUE_FOUND:")) {
        await ctx.replyWithChatAction("upload_voice");
        const voicePath = await generateSpeech(response, tempDir);
        if (voicePath) {

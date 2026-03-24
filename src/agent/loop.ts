@@ -9,9 +9,14 @@ const MAX_ITERATIONS = 5;
 /**
  * Main Agent Loop: Processes a message, reasons, calls tools, and generates a response.
  */
-export async function processMessage(userId: number, text: string): Promise<string> {
+export async function processMessage(userId: number, text: string | any[]): Promise<string> {
   // 1. Fetch conversation history
   const history = await getHistory(userId);
+  
+  // Format the current message for LLM
+  let currentContent = text;
+  let dbText = typeof text === "string" ? text : "[Image/Multimodal]";
+
   const messages: LLMMessage[] = [
     {
       role: "system",
@@ -20,7 +25,7 @@ export async function processMessage(userId: number, text: string): Promise<stri
       
       STRICT RULES:
       1. ONLY use the specific tools provided in the 'tools' list.
-      2. DO NOT invent, hallucinate, or attempt to call any functions or tools that are not explicitly defined.
+      2. DO NOT invent or hallucinate any other tools.
       3. If no provided tool fits the request, answer using your own knowledge as a text response.
       4. Keep your answers helpful, concise, and professional.`,
     },
@@ -34,11 +39,11 @@ export async function processMessage(userId: number, text: string): Promise<stri
         name: metadata.name,
       };
     }),
-    { role: "user", content: text },
+    { role: "user", content: currentContent as any },
   ];
 
   // Store user message
-  await saveMessage(userId, "user", text);
+  await saveMessage(userId, "user", dbText);
 
   let iteration = 0;
   while (iteration < MAX_ITERATIONS) {
