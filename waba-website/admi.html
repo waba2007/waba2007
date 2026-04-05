@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Administration – STOPEVOLUE</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=GFS+Neohellenic:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #080c14;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --text-primary: #F0F0F5;
+            --text-secondary: rgba(255, 255, 255, 0.65);
+            --accent-primary: #00D4FF;
+            --accent-secondary: #FFD700;
+            --shadow-color: rgba(0, 212, 255, 0.15);
+            --error-color: #ff4757;
+            --success-color: #2ed573;
+            --font-main: 'GFS Neohellenic', Georgia, serif;
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 2rem;
+            --spacing-lg: 4rem;
+            --transition-fast: 0.3s ease;
+        }
+        
+        [data-theme="light"] {
+            --bg-primary: #F8FAFF;
+            --bg-secondary: #EEF2FF;
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(0, 0, 0, 0.08);
+            --text-primary: #1A1A2E;
+            --text-secondary: rgba(0, 0, 0, 0.65);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-main);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: var(--spacing-lg) var(--spacing-md);
+        }
+        
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px var(--shadow-color);
+        }
+        
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+            padding: var(--spacing-md);
+        }
+        
+        .admin-title {
+            font-size: 2rem;
+            color: var(--accent-primary);
+        }
+        
+        .logout-btn {
+            background: var(--error-color);
+            color: white;
+            border: none;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: var(--font-main);
+            font-weight: 700;
+            transition: var(--transition-fast);
+        }
+        
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+        }
+        
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: var(--spacing-lg);
+        }
+        
+        .login-form h2 {
+            text-align: center;
+            margin-bottom: var(--spacing-lg);
+            color: var(--accent-primary);
+        }
+        
+        .form-group {
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            font-weight: 700;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: var(--spacing-sm);
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            font-size: 1rem;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: var(--spacing-sm);
+            background: linear-gradient(135deg, var(--accent-primary), #0099cc);
+            border: none;
+            border-radius: 8px;
+            color: var(--bg-primary);
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            font-family: var(--font-main);
+            transition: var(--transition-fast);
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+        }
+        
+        .error-msg {
+            color: var(--error-color);
+            text-align: center;
+            margin-top: var(--spacing-sm);
+            display: none;
+        }
+        
+        .error-msg.visible {
+            display: block;
+        }
+        
+        .dashboard {
+            display: none;
+        }
+        
+        .dashboard.visible {
+            display: block;
+        }
+        
+        .module {
+            margin-bottom: var(--spacing-lg);
+            padding: var(--spacing-lg);
+        }
+        
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+        }
+        
+        .module-title {
+            font-size: 1.5rem;
+            color: var(--accent-primary);
+        }
+        
+        .module-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-family: var(--font-main);
+            transition: var(--transition-fast);
+        }
+        
+        .action-btn:hover {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+        }
+        
+        .action-btn.danger {
+            border-color: var(--error-color);
+            color: var(--error-color);
+        }
+        
+        .action-btn.danger:hover {
+            background: var(--error-color);
+            color: white;
+        }
+        
+        .contacts-table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow-x: auto;
+            display: block;
+        }
+        
+        .contacts-table thead {
+            display: table-header-group;
+        }
+        
+        .contacts-table tbody {
+            display: table-row-group;
+        }
+        
+        .contacts-table th,
+        .contacts-table td {
+            padding: var(--spacing-sm);
+            text-align: left;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        
+        .contacts-table th {
+            color: var(--accent-primary);
+            font-weight: 700;
+        }
+        
+        .contacts-table tr:hover {
+            background: var(--glass-bg);
+        }
+        
+        @media (max-width: 768px) {
+            .contacts-table {
+                font-size: 0.85rem;
+            }
+            
+            .contacts-table th,
+            .contacts-table td {
+                padding: var(--spacing-xs);
+            }
+        }
+        
+        .product-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        @media (max-width: 768px) {
+            .product-form {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .image-preview {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-top: var(--spacing-sm);
+            display: none;
+        }
+        
+        .image-preview.visible {
+            display: block;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--spacing-md);
+        }
+        
+        .product-card {
+            padding: var(--spacing-md);
+            position: relative;
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .product-category {
+            position: absolute;
+            top: var(--spacing-sm);
+            right: var(--spacing-sm);
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        
+        .product-name {
+            font-size: 1.2rem;
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .product-price {
+            color: var(--accent-secondary);
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .product-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: var(--spacing-md);
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .product-actions {
+            display: flex;
+            gap: var(--spacing-xs);
+        }
+        
+        .reset-info {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: var(--spacing-xs);
+        }
+        
+        .stats-bar {
+            display: inline-block;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: 20px;
+            font-weight: 700;
+            margin-left: var(--spacing-sm);
+        }
+    </style>
+</head>
+<body data-theme="dark">
+    <div class="admin-container">
+        <!-- Login Form -->
+        <div class="login-container glass" id="loginContainer">
+            <form class="login-form" id="loginForm">
+                <h2><i class="fas fa-lock"></i> Administration</h2>
+                
+                <div class="form-group">
+                    <label class="form-label" for="username">Identifiant</label>
+                    <input type="text" id="username" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="password">Mot de passe</label>
+                    <input type="password" id="password" class="form-input" required>
+                </div>
+                
+                <button type="submit" class="submit-btn">Se connecter</button>
+                <p class="error-msg" id="loginError">Identifiants incorrects</p>
+            </form>
+        </div>
+        
+        <!-- Dashboard -->
+        <div class="dashboard" id="dashboard">
+            <header class="admin-header glass">
+                <h1 class="admin-title"><i class="fas fa-cog"></i> Panel Administrateur</h1>
+                <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+            </header>
+            
+            <!-- Module 1: Gestion des contacts -->
+            <section class="module glass">
+                <div class="module-header">
+                    <h2 class="module-title">
+                        Contacts collectés
+                        <span class="stats-bar" id="contactsCount">0 contacts</span>
+                    </h2>
+                    <div class="module-actions">
+                        <button class="action-btn" id="downloadVcfBtn">
+                            <i class="fas fa-download"></i> Télécharger VCF
+                        </button>
+                        <button class="action-btn danger" id="resetContactsBtn">
+                            <i class="fas fa-trash"></i> Réinitialiser maintenant
+                        </button>
+                    </div>
+                </div>
+                
+                <p class="reset-info" id="resetInfo">Prochaine réinitialisation dans X jours</p>
+                
+                <div style="overflow-x: auto;">
+                    <table class="contacts-table" id="contactsTable">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Téléphone</th>
+                                <th>Email</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contactsBody">
+                        </tbody>
+                    </table>
+                </div>
+                
+                <p id="noContacts" style="text-align: center; padding: var(--spacing-lg); color: var(--text-secondary); display: none;">
+                    <i class="fas fa-inbox"></i> Aucun contact enregistré
+                </p>
+            </section>
+            
+            <!-- Module 2: Gestion des produits -->
+            <section class="module glass">
+                <div class="module-header">
+                    <h2 class="module-title">Gestion des produits numériques</h2>
+                </div>
+                
+                <form class="product-form" id="productForm">
+                    <div class="form-group">
+                        <label class="form-label" for="productName">Nom du produit *</label>
+                        <input type="text" id="productName" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="productCategory">Catégorie</label>
+                        <select id="productCategory" class="form-input">
+                            <option value="Ebook">Ebook</option>
+                            <option value="Logiciel">Logiciel</option>
+                            <option value="Formation">Formation</option>
+                            <option value="Autre">Autre</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label class="form-label" for="productImage">URL de l'image</label>
+                        <input type="url" id="productImage" class="form-input" placeholder="https://exemple.com/image.jpg">
+                        <img id="imagePreview" class="image-preview" alt="Aperçu">
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label class="form-label" for="productDescription">Description courte * (max 300 caractères)</label>
+                        <textarea id="productDescription" class="form-input" maxlength="300" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="productPrice">Prix affiché (optionnel)</label>
+                        <input type="text" id="productPrice" class="form-input" placeholder="5 000 FCFA">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="productLink">Lien d'achat *</label>
+                        <input type="url" id="productLink" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <button type="submit" class="submit-btn">
+                            <i class="fas fa-plus"></i> Ajouter le produit
+                        </button>
+                    </div>
+                </form>
+                
+                <h3 style="margin: var(--spacing-lg) 0 var(--spacing-md); color: var(--accent-primary);">Produits existants</h3>
+                
+                <div class="products-grid" id="productsGrid">
+                </div>
+                
+                <p id="noProducts" style="text-align: center; padding: var(--spacing-lg); color: var(--text-secondary); display: none;">
+                    <i class="fas fa-box-open"></i> Aucun produit disponible
+                </p>
+            </section>
+        </div>
+    </div>
+    
+    <script>
+        // ============================================
+        // AUTHENTIFICATION
+        // ============================================
+        const VALID_USERNAME = 'admin';
+        const VALID_PASSWORD = 'stop2025';
+        
+        const loginContainer = document.getElementById('loginContainer');
+        const dashboard = document.getElementById('dashboard');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+        const logoutBtn = document.getElementById('logoutBtn');
+        
+        /**
+         * Vérifie si l'admin est authentifié
+         */
+        function checkAuth() {
+            const isAuthenticated = sessionStorage.getItem('stopevolue_admin_auth');
+            
+            if (isAuthenticated === 'true') {
+                showDashboard();
+            } else {
+                showLogin();
+            }
+        }
+        
+        /**
+         * Affiche le formulaire de connexion
+         */
+        function showLogin() {
+            loginContainer.style.display = 'block';
+            dashboard.classList.remove('visible');
+        }
+        
+        /**
+         * Affiche le dashboard
+         */
+        function showDashboard() {
+            loginContainer.style.display = 'none';
+            dashboard.classList.add('visible');
+            loadContacts();
+            loadProducts();
+            updateResetInfo();
+        }
+        
+        /**
+         * Gère la soumission du formulaire de connexion
+         */
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === VALID_USERNAME && password === VALID_PASSWORD) {
+                sessionStorage.setItem('stopevolue_admin_auth', 'true');
+                loginError.classList.remove('visible');
+                showDashboard();
+            } else {
+                loginError.classList.add('visible');
+            }
+        });
+        
+        /**
+         * Gère la déconnexion
+         */
+        logoutBtn.addEventListener('click', () => {
+            sessionStorage.removeItem('stopevolue_admin_auth');
+            showLogin();
+        });
+        
+        // ============================================
+        // GESTION DES CONTACTS
+        // ============================================
+        const contactsBody = document.getElementById('contactsBody');
+        const contactsCount = document.getElementById('contactsCount');
+        const noContacts = document.getElementById('noContacts');
+        const downloadVcfBtn = document.getElementById('downloadVcfBtn');
+        const resetContactsBtn = document.getElementById('resetContactsBtn');
+        const resetInfo = document.getElementById('resetInfo');
+        
+        /**
+         * Charge et affiche les contacts depuis localStorage
+         */
+        function loadContacts() {
+            const contacts = JSON.parse(localStorage.getItem('waba_contacts') || '[]');
+            
+            contactsCount.textContent = `${contacts.length} contact${contacts.length !== 1 ? 's' : ''}`;
+            
+            if (contacts.length === 0) {
+                contactsBody.innerHTML = '';
+                noContacts.style.display = 'block';
+                return;
+            }
+            
+            noContacts.style.display = 'none';
+            
+            // Trier par date décroissante
+            contacts.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            contactsBody.innerHTML = contacts.map(contact => `
+                <tr>
+                    <td>${escapeHtml(contact.nom)}</td>
+                    <td>${escapeHtml(contact.telephone)}</td>
+                    <td>${escapeHtml(contact.email)}</td>
+                    <td>${new Date(contact.date).toLocaleDateString('fr-FR')}</td>
+                </tr>
+            `).join('');
+        }
+        
+        /**
+         * Met à jour l'information de réinitialisation automatique
+         */
+        function updateResetInfo() {
+            let lastReset = localStorage.getItem('waba_last_reset');
+            const now = new Date();
+            
+            if (!lastReset) {
+                lastReset = now.toISOString();
+                localStorage.setItem('waba_last_reset', lastReset);
+            }
+            
+            const lastResetDate = new Date(lastReset);
+            const diffTime = now - lastResetDate;
+            const diffDays = 5 - Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays <= 0) {
+                resetInfo.textContent = 'Réinitialisation automatique disponible';
+                resetInfo.style.color = 'var(--error-color)';
+            } else {
+                resetInfo.textContent = `Prochaine réinitialisation dans ${diffDays} jour${diffDays !== 1 ? 's' : ''}`;
+                resetInfo.style.color = 'var(--text-secondary)';
+            }
+        }
+        
+        /**
+         * Vérifie et exécute la réinitialisation automatique si nécessaire
+         */
+        function checkAutoReset() {
+            let lastReset = localStorage.getItem('waba_last_reset');
+            const now = new Date();
+            
+            if (!lastReset) {
+                localStorage.setItem('waba_last_reset', now.toISOString());
+                return;
+            }
+            
+            const lastResetDate = new Date(lastReset);
+            const diffTime = now - lastResetDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays >= 5) {
+                localStorage.removeItem('waba_contacts');
+                localStorage.setItem('waba_last_reset', now.toISOString());
+                loadContacts();
+                updateResetInfo();
+            }
+        }
+        
+        /**
+         * Télécharge les contacts au format VCF
+         */
+        downloadVcfBtn.addEventListener('click', () => {
+            const contacts = JSON.parse(localStorage.getItem('waba_contacts') || '[]');
+            
+            if (contacts.length === 0) {
+                alert('Aucun contact à exporter');
+                return;
+            }
+            
+            let vcfContent = '';
+            
+            contacts.forEach(contact => {
+                vcfContent += 'BEGIN:VCARD\n';
+                vcfContent += 'VERSION:3.0\n';
+                vcfContent += `FN:${contact.nom}\n`;
+                vcfContent += `TEL:${contact.telephone}\n`;
+                vcfContent += `EMAIL:${contact.email}\n`;
+                vcfContent += 'END:VCARD\n\n';
+            });
+            
+            const blob = new Blob([vcfContent], { type: 'text/vcard' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'contacts_waba.vcf';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+        
+        /**
+         * Réinitialise les contacts manuellement
+         */
+        resetContactsBtn.addEventListener('click', () => {
+            if (confirm('Êtes-vous sûr de vouloir supprimer tous les contacts ? Cette action est irréversible.')) {
+                localStorage.removeItem('waba_contacts');
+                localStorage.setItem('waba_last_reset', new Date().toISOString());
+                loadContacts();
+                updateResetInfo();
+            }
+        });
+        
+        // ============================================
+        // GESTION DES PRODUITS
+        // ============================================
+        const productForm = document.getElementById('productForm');
+        const productsGrid = document.getElementById('productsGrid');
+        const noProducts = document.getElementById('noProducts');
+        const productImageInput = document.getElementById('productImage');
+        const imagePreview = document.getElementById('imagePreview');
+        
+        // Aperçu d'image en temps réel
+        productImageInput.addEventListener('input', () => {
+            const url = productImageInput.value.trim();
+            
+            if (url) {
+                imagePreview.src = url;
+                imagePreview.classList.add('visible');
+            } else {
+                imagePreview.classList.remove('visible');
+            }
+        });
+        
+        /**
+         * Charge et affiche les produits depuis localStorage
+         */
+        function loadProducts() {
+            const products = JSON.parse(localStorage.getItem('waba_products') || '[]');
+            
+            if (products.length === 0) {
+                productsGrid.innerHTML = '';
+                noProducts.style.display = 'block';
+                return;
+            }
+            
+            noProducts.style.display = 'none';
+            
+            productsGrid.innerHTML = products.map((product, index) => `
+                <div class="product-card glass">
+                    ${product.category ? `<span class="product-category">${escapeHtml(product.category)}</span>` : ''}
+                    <img src="${escapeHtml(product.image) || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22%3E%3Crect fill=%22%2300D4FF%22 width=%22400%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%230a0a0f%22 font-size=%2224%22%3EPas d%27image%3C/text%3E%3C/svg%3E'}" 
+                         alt="${escapeHtml(product.name)}" 
+                         class="product-image"
+                         loading="lazy">
+                    <h3 class="product-name">${escapeHtml(product.name)}</h3>
+                    ${product.price ? `<p class="product-price">${escapeHtml(product.price)}</p>` : ''}
+                    <p class="product-desc">${escapeHtml(product.description)}</p>
+                    <div class="product-actions">
+                        <button class="action-btn" onclick="editProduct(${index})">
+                            <i class="fas fa-edit"></i> Modifier
+                        </button>
+                        <button class="action-btn danger" onclick="deleteProduct(${index})">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        /**
+         * Ajoute un nouveau produit
+         */
+        productForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const product = {
+                name: document.getElementById('productName').value.trim(),
+                category: document.getElementById('productCategory').value,
+                image: document.getElementById('productImage').value.trim(),
+                description: document.getElementById('productDescription').value.trim(),
+                price: document.getElementById('productPrice').value.trim(),
+                link: document.getElementById('productLink').value.trim()
+            };
+            
+            const products = JSON.parse(localStorage.getItem('waba_products') || '[]');
+            products.push(product);
+            localStorage.setItem('waba_products', JSON.stringify(products));
+            
+            productForm.reset();
+            imagePreview.classList.remove('visible');
+            loadProducts();
+            
+            alert('Produit ajouté avec succès !');
+        });
+        
+        /**
+         * Modifie un produit existant
+         * @param {number} index - Index du produit dans le tableau
+         */
+        window.editProduct = function(index) {
+            const products = JSON.parse(localStorage.getItem('waba_products') || '[]');
+            const product = products[index];
+            
+            document.getElementById('productName').value = product.name;
+            document.getElementById('productCategory').value = product.category || 'Ebook';
+            document.getElementById('productImage').value = product.image || '';
+            document.getElementById('productDescription').value = product.description;
+            document.getElementById('productPrice').value = product.price || '';
+            document.getElementById('productLink').value = product.link;
+            
+            if (product.image) {
+                imagePreview.src = product.image;
+                imagePreview.classList.add('visible');
+            }
+            
+            // Supprime l'ancien produit avant modification
+            if (confirm('Voulez-vous modifier ce produit ? L\'ancien sera supprimé et le nouveau ajouté.')) {
+                products.splice(index, 1);
+                localStorage.setItem('waba_products', JSON.stringify(products));
+                loadProducts();
+            }
+        };
+        
+        /**
+         * Supprime un produit
+         * @param {number} index - Index du produit dans le tableau
+         */
+        window.deleteProduct = function(index) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
+                const products = JSON.parse(localStorage.getItem('waba_products') || '[]');
+                products.splice(index, 1);
+                localStorage.setItem('waba_products', JSON.stringify(products));
+                loadProducts();
+            }
+        };
+        
+        // ============================================
+        // UTILITAIRES
+        // ============================================
+        
+        /**
+         * Échappe une chaîne HTML pour prévenir les failles XSS
+         * @param {string} str - La chaîne à échapper
+         * @returns {string} - La chaîne échappée
+         */
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+        
+        // ============================================
+        // INITIALISATION
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            checkAutoReset();
+        });
+    </script>
+</body>
+</html>
