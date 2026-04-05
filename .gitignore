@@ -1,15 +1,28 @@
+```
+# Build artifacts
+dist/
+build/
+*.pyc
+__pycache__/
+
 # Dependencies
 node_modules/
-dist/
-
-# Environment
+venv/
+.venv/
 .env
-.env.example
+.env.local
+.env.*
 
-# Database
-database/*.sqlite
-database/*.sqlite-journal
+# Editors
+.vscode/
+.idea/
 
-# Operating System
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# System files
 .DS_Store
 Thumbs.db
+```
